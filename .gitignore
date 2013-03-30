@@ -6,3 +6,6 @@ redbox.ini
 
 # server logs
 *.log
+
+# vim swap files
+*.swp

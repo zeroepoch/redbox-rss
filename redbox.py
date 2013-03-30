@@ -36,9 +36,12 @@
 # Usually when 'success' is false, 'msg' will contain the error message. The
 # 'data' value contains a structure unique to the API being called.
 #
-# The length of time that the authenticated session will remain valid may be
-# determined by looking at the expiration date on a cookie name '.Redbox'.
-# Although this has not yet been verified.
+# For additional information about the structure of each API call see:
+#   docs/rb.global.js
+#
+# The length of time that an authenticated session will remain valid may be
+# related to the expiration date on a cookie name '.Redbox'. This has not yet
+# been verified.
 #
 
 import sys
@@ -162,6 +165,17 @@ class Account:
             return False
 
         return True
+
+    # logout from the redbox website
+    def logout (self):
+
+        # construct api request
+        data = {
+            'returnUrl': "http://www.redbox.com"
+        }
+
+        # perform api call
+        self._ajax("/Account/Logout", data)
 
     # get the last <count> rentals
     def getRentalHistory (self, count=10):

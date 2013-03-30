@@ -3,11 +3,15 @@
 import sys
 import string
 import logging
+import signal
 import ConfigParser
 
-import twisted.web
-import twisted.internet
+# twisted server
+import twisted.web.server
+import twisted.web.resource
+import twisted.internet.reactor
 
+# redbox api
 import redbox
 
 # settings file path
@@ -20,6 +24,32 @@ class SettingsError (Exception):
 # redbox rss server
 class RSSServer:
 
+    # rss site handler
+    class RSSResource (twisted.web.resource.Resource):
+
+        # no children
+        isLeaf = True
+
+        # constructor
+        def __init__ (self, server):
+
+            # save server reference
+            self.server = server
+
+        # handle get request
+        def render_GET (self, request):
+
+            # log connection
+            logging.info("GET {}".format(request.uri))
+
+            # set return type as xml
+            request.setHeader("Content-Type", "application/xml")
+
+            # get latest rss feed
+            response = self.server.get_rss()
+
+            return str(response)
+
     # constructor
     def __init__ (self):
 
@@ -29,7 +59,7 @@ class RSSServer:
         # setup logger
         try:
             if self.log:
-                logging.basicConfig(filename=self.log,
+                logging.basicConfig(filename=self.log, level=logging.INFO,
                     format="%(asctime)s  %(levelname)s: %(message)s")
             else:
                 logging.basicConfig(level=logging.ERROR,
@@ -79,21 +109,58 @@ class RSSServer:
         except:
             self.log = None
 
+    # start web server
+    def start (self):
+
+        logging.info("RSS Server Starting...")
+
+        # perform initial login
+        if not self.account.login(self.username, self.password):
+            raise SettingsError("Username and/or password are incorrect")
+
+        # create twisted site
+        resource = RSSServer.RSSResource(self)
+        site = twisted.web.server.Site(resource)
+
+        # start twisted server
+        twisted.internet.reactor.listenTCP(self.port, site)
+        twisted.internet.reactor.callWhenRunning(
+            lambda: logging.info("RSS Server Started")
+        )
+        twisted.internet.reactor.run()
+
+    # stop web server
+    def stop (self):
+
+        logging.info("RSS Server Stopping...")
+
+        # stop twisted server
+        twisted.internet.reactor.stop()
+
+        # perform logout
+        self.account.logout()
+
+        logging.info("RSS Server Stopped")
+
     # get recent redbox rentals
     def get_rentals (self):
 
         try:
 
-            # login to redbox
-            if not self.account.login(self.username, self.password):
-                logging.error("Failed to login to redbox")
-                return None
-
-            # get recent rentals
+            # get recent rentals (attempt 1)
             rentals = self.account.getRentalHistory()
             if not rentals:
-                logging.error("Unable to retrieve rental history")
-                return None
+
+                # login to redbox
+                if not self.account.login(self.username, self.password):
+                    logging.error("Failed to login to redbox")
+                    return None
+
+                # get recent rentals (attempt 2)
+                rentals = self.account.getRentalHistory()
+                if not rentals:
+                    logging.error("Unable to retrieve rental history")
+                    return None
 
         # catch internal errors
         except Exception, err:
@@ -155,17 +222,27 @@ class RSSServer:
 
         return (head + body + tail)
 
+# stop server on ctrl+c (sigint)
+def sigint_handler (signum, frame):
+
+    # stop rss server
+    server.stop()
+
 # entry point
 if __name__ == '__main__':
 
-    # create redbox rss server
+    # catch interrupt signal
+    signal.signal(signal.SIGINT, sigint_handler)
+
     try:
+
+        # start redbox rss server
         server = RSSServer()
+        server.start()
+
+    # catch settings file errors
     except SettingsError, err:
         sys.stderr.write("ERROR: {}\n".format(err))
         sys.exit(1)
-
-    # print rss feed to screen
-    print server.get_rss()
 
 # vim: ai et ts=4 sts=4 sw=4

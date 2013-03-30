@@ -7,6 +7,7 @@ import signal
 import ConfigParser
 
 # twisted server
+import twisted.web.util
 import twisted.web.server
 import twisted.web.resource
 import twisted.internet.reactor
@@ -16,6 +17,9 @@ import redbox
 
 # settings file path
 SETTINGS_FILE = "redbox.ini"
+
+# location of redbox favicon
+FAVICON_URL = "http://www.redbox.com/content/images/favicon.ico"
 
 # settings parser errors
 class SettingsError (Exception):
@@ -41,6 +45,10 @@ class RSSServer:
 
             # log connection
             logging.info("GET {}".format(request.uri))
+
+            # redirect favicon.ico to redbox
+            if request.uri == "/favicon.ico":
+                return twisted.web.util.redirectTo(FAVICON_URL, request)
 
             # set return type as xml
             request.setHeader("Content-Type", "application/xml")

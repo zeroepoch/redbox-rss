@@ -44,7 +44,7 @@ class RSSServer:
         def render_GET (self, request):
 
             # log connection
-            logging.info("GET {}".format(request.uri))
+            logging.info("GET " + request.uri)
 
             # redirect favicon.ico to redbox
             if request.uri == "/favicon.ico":
@@ -73,7 +73,7 @@ class RSSServer:
                 logging.basicConfig(level=logging.ERROR,
                     format="%(levelname)s: %(message)s")
         except IOError:
-            raise SettingsError("Failed to create log '{}'".format(self.log))
+            raise SettingsError("Failed to create log '%s'" % self.log)
 
         # new redbox account
         self.account = redbox.Account()
@@ -89,7 +89,7 @@ class RSSServer:
             config.readfp(open(SETTINGS_FILE, 'r'))
         except:
             raise SettingsError(
-                "Failed to load settings file '{}'".format(SETTINGS_FILE))
+                "Failed to load settings file '%s'" % SETTINGS_FILE)
 
         # get username
         try:
@@ -222,7 +222,7 @@ class RSSServer:
             for movie in rentals:
                 body += tmpl.substitute(movie)
         except KeyError, err:
-            logging.error("Movie is missing {} key".format(err))
+            logging.error("Movie is missing %s key" % err)
             return ""
         except Exception, err:
             logging.error(err)
@@ -250,7 +250,7 @@ if __name__ == '__main__':
 
     # catch settings file errors
     except SettingsError, err:
-        sys.stderr.write("ERROR: {}\n".format(err))
+        sys.stderr.write("ERROR: %s\n" % err)
         sys.exit(1)
 
 # vim: ai et ts=4 sts=4 sw=4

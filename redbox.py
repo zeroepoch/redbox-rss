@@ -70,7 +70,7 @@ class HTTPError (Exception):
         self.html = html
 
     def __str__ (self):
-        return "Request to fetch '{}' failed".format(self.url)
+        return "Request to fetch '%s' failed" % self.url
 
 # json parsing errors
 class JSONError (Exception):
@@ -140,7 +140,7 @@ class Account:
         # check if request successful
         if not d.get('success'):
             msg = d.get('msg', "Unknown, API message missing")
-            sys.stderr.write("ERROR: {}\n".format(msg))
+            sys.stderr.write("ERROR: %s\n" % msg)
             return None
 
         return d.get('data')

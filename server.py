@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+#
+# Redbox RSS Server
+#
 
 import sys
 import string
@@ -6,6 +9,8 @@ import logging
 import signal
 import optparse
 import ConfigParser
+
+from datetime import datetime, timedelta
 
 # twisted server
 import twisted.web.util
@@ -21,6 +26,9 @@ SETTINGS_FILE = "redbox.ini"
 
 # location of redbox favicon
 FAVICON_URL = "http://www.redbox.com/content/images/favicon.ico"
+
+# titles refresh interval
+TITLES_TIMEOUT = 3600  # 1 hr
 
 # settings parser errors
 class SettingsError (Exception):
@@ -89,6 +97,11 @@ class RSSServer:
 
         # new redbox account
         self.account = redbox.Account()
+
+        # cache title list
+        self.titles_cache = None
+        self.titles_timestamp = (
+            datetime.now() - timedelta(seconds=TITLES_TIMEOUT))
 
         # cache descriptions
         self.desc_cache = {}
@@ -242,7 +255,13 @@ class RSSServer:
         """.strip()
 
         # get title list
-        titles = redbox.Product().getProducts()
+        if ((datetime.now() - self.titles_timestamp) <
+            timedelta(seconds=TITLES_TIMEOUT)):
+            titles = self.titles_cache
+        else:
+            titles = redbox.Product().getProducts()
+            self.titles_cache = titles
+            self.titles_timestamp = datetime.now()
 
         try:
 

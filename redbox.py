@@ -46,10 +46,12 @@
 
 import sys
 import re
+import logging
 import urllib
 import urllib2
 import cookielib
-import logging
+
+from datetime import datetime, timedelta
 
 try:
     import json
@@ -60,11 +62,19 @@ except ImportError:
 REDBOX_API_URL = "https://www.redbox.com/api"
 REDBOX_API_KEY_URL = "http://www.redbox.com/register"
 
+# api key refresh interval
+API_KEY_TIMEOUT = 60  # 1 min
+
 # enable/disable library debug
 _redbox_debug = False
 def set_debug (val):
     global _redbox_debug
     _redbox_debug = val
+
+# cache api key
+_api_key_cache = None
+_api_key_timestamp = (
+    datetime.now() - timedelta(seconds=API_KEY_TIMEOUT))
 
 # api key extraction errors
 class APIKeyError (Exception):
@@ -108,6 +118,14 @@ class RedboxAPI:
     # get dynamic api key
     def _get_api_key (self):
 
+        global _api_key_cache
+        global _api_key_timestamp
+
+        # check api key cache
+        if ((datetime.now() - _api_key_timestamp) <
+            timedelta(seconds=API_KEY_TIMEOUT)):
+            return _api_key_cache
+
         # log api key request
         if _redbox_debug:
             logging.debug("API KEY " + REDBOX_API_KEY_URL)
@@ -125,6 +143,10 @@ class RedboxAPI:
             api_key = mat_api_key.group(1).strip()
         else:
             raise APIKeyError("Redbox API key not found")
+
+        # update api key cache
+        _api_key_cache = api_key
+        _api_key_timestamp = datetime.now()
 
         return api_key
 

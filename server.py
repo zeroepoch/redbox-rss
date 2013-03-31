@@ -216,7 +216,7 @@ class RSSServer:
         <item>
           <title>${name}</title>
           <description>
-            &lt;a href=&quot;http://www.redbox.com/movies/${PID}&quot;&gt;
+            &lt;a href=&quot;http://www.redbox.com/movies/${seo}&quot;&gt;
               &lt;img src=&quot;http://images.redbox.com/Images/EPC/Thumb150/${PID}.jpg&quot;/&gt;
             &lt;/a&gt;
             &lt;br/&gt;
@@ -224,7 +224,7 @@ class RSSServer:
             &lt;br/&gt;
             Format: ${type}
           </description>
-          <link>http://www.redbox.com/movies/${PID}</link>
+          <link>http://www.redbox.com/movies/${seo}</link>
           <guid>${ID}</guid>
         </item>
         """.lstrip())
@@ -235,14 +235,19 @@ class RSSServer:
         </rss>
         """.strip()
 
+        # get title list
+        titles = redbox.Product().getProducts()
+
         try:
 
             # process movie data
             body = ""
             for movie in rentals:
 
-                # get movie description
+                # get product id
                 pid = movie['PID']
+
+                # get movie description
                 if pid in self.desc_cache:
                     desc = self.desc_cache[pid]
                 else:
@@ -250,8 +255,15 @@ class RSSServer:
                     desc = detail.get('desc', "")
                     self.desc_cache[pid] = desc
 
+                # get url short name
+                title = titles.get(pid)
+                if title:
+                    seo = title.get('SEO', pid)
+                else:
+                    seo = pid
+
                 # fill tmpl with movie data
-                body += tmpl.substitute(movie, desc=desc)
+                body += tmpl.substitute(movie, desc=desc, seo=seo)
 
         # catch malformed data errors
         except KeyError, err:

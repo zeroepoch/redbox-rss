@@ -175,7 +175,7 @@ class RedboxAPI:
         try:
             response = self.url_opener.open(request)
         except urllib2.HTTPError, err:
-            raise HTTPError(REDBOX_API_URL + url, err.read())
+            raise HTTPError(request_url, err.read())
 
         # decode returned json
         try:
@@ -198,6 +198,46 @@ class RedboxAPI:
 
 # Redbox Product Class (rb.api.product)
 class Product (RedboxAPI):
+
+    # get list of available titles
+    def getProducts (self):
+
+        # create titles url
+        request_url = REDBOX_API_URL + "/product/js/__titles"
+
+        # log api request
+        if _redbox_debug:
+            logging.debug("API " + request_url)
+
+        # fetch titles page
+        try:
+            response = self.url_opener.open(request_url)
+        except urllib2.HTTPError, err:
+            raise HTTPError(request_url, err.read())
+
+        # extra title data
+        try:
+            result_js = response.read()
+            start = result_js.find("[")
+            result_json = json.loads(result_js[start:])
+        except ValueError:
+            raise JSONError("Titles javascript page was unrecognizable")
+
+        # process title data
+        result = {}
+        for title in result_json:
+
+            # save and remove product id
+            pid = title.get('ID')
+            if pid:
+                del title['ID']
+            else:
+                continue
+
+            # add product to result
+            result[pid] = title
+
+        return result
 
     # get product details by id
     def getDetail (self, pid, length=300):

@@ -159,6 +159,25 @@ class RedboxAPI:
 
         return d.get('data')
 
+# Redbox Product Class (rb.api.product)
+class Product (RedboxAPI):
+
+    # get product details by id
+    def getDetail (self, pid, length=300):
+
+        # construct api request
+        data = {
+            'descriptionLimit': length
+        }
+
+        # perform api call
+        url = "/product/details/%d" % pid
+        result = self._ajax(RedboxAPI.Method.GET, url, data)
+        if not result:
+            return ""
+
+        return result
+
 # Redbox Account Class (rb.api.account)
 class Account (RedboxAPI):
 

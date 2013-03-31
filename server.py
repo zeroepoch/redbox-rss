@@ -57,7 +57,7 @@ class RSSServer:
             # get latest rss feed
             response = self.server.get_rss()
 
-            return str(response)
+            return response.encode('utf-8')
 
     # constructor
     def __init__ (self, config=SETTINGS_FILE):
@@ -78,6 +78,9 @@ class RSSServer:
 
         # new redbox account
         self.account = redbox.Account()
+
+        # cache descriptions
+        self.desc_cache = {}
 
     # parse settings file
     def read_config (self, path):
@@ -168,7 +171,7 @@ class RSSServer:
 
                 # login to redbox
                 if not self.account.login(self.username, self.password):
-                    logging.error("Failed to login to redbox")
+                    logging.error("Failed to login to Redbox")
                     return None
 
                 # get recent rentals (attempt 2)
@@ -190,11 +193,11 @@ class RSSServer:
         # get rental history
         rentals = self.get_rentals()
         if not rentals:
-            return ""
+            return u""
 
         # formats rss header
-        head = """
-        <?xml version="1.0" encoding="UTF-8" ?>
+        head = u"""
+        <?xml version="1.0" encoding="utf-8" ?>
         <rss version="2.0">
           <channel>
             <title>Redbox Rental History</title>
@@ -204,13 +207,15 @@ class RSSServer:
         """.lstrip()
 
         # create template for body
-        tmpl = string.Template("""
+        tmpl = string.Template(u"""
         <item>
           <title>${name}</title>
           <description>
             &lt;a href=&quot;http://www.redbox.com/movies/${PID}&quot;&gt;
               &lt;img src=&quot;http://images.redbox.com/Images/EPC/Thumb150/${PID}.jpg&quot;/&gt;
             &lt;/a&gt;
+            &lt;br/&gt;
+            ${desc}
           </description>
           <link>http://www.redbox.com/movies/${PID}</link>
           <guid>${PID}</guid>
@@ -218,16 +223,30 @@ class RSSServer:
         """.lstrip())
 
         # formats rss footer
-        tail = """
+        tail = u"""
           </channel>
         </rss>
         """.strip()
 
-        # fill tmpl with movie data
         try:
+
+            # process movie data
             body = ""
             for movie in rentals:
-                body += tmpl.substitute(movie)
+
+                # get movie description
+                pid = movie['PID']
+                if pid in self.desc_cache:
+                    desc = self.desc_cache[pid]
+                else:
+                    detail = redbox.Product().getDetail(pid)
+                    desc = detail.get('desc', "")
+                    self.desc_cache[pid] = desc
+
+                # fill tmpl with movie data
+                body += tmpl.substitute(movie, desc=desc)
+
+        # catch malformed data errors
         except KeyError, err:
             logging.error("Movie is missing %s key" % err)
             return ""

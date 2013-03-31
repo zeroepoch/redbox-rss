@@ -132,11 +132,14 @@ class RSSServer:
         site = twisted.web.server.Site(resource)
 
         # start twisted server
-        twisted.internet.reactor.listenTCP(self.port, site)
-        twisted.internet.reactor.callWhenRunning(
-            lambda: logging.info("RSS Server Started")
-        )
-        twisted.internet.reactor.run()
+        try:
+            twisted.internet.reactor.listenTCP(self.port, site)
+            twisted.internet.reactor.callWhenRunning(
+                lambda: logging.info("RSS Server Started")
+            )
+            twisted.internet.reactor.run()
+        except twisted.internet.error.CannotListenError:
+            raise SettingsError("Port '%d' already in use" % self.port)
 
     # stop web server
     def stop (self):

@@ -221,9 +221,11 @@ class RSSServer:
             &lt;/a&gt;
             &lt;br/&gt;
             ${desc}
+            &lt;br/&gt;
+            Format: ${type}
           </description>
           <link>http://www.redbox.com/movies/${PID}</link>
-          <guid>${PID}</guid>
+          <guid>${ID}</guid>
         </item>
         """.lstrip())
 
@@ -244,7 +246,7 @@ class RSSServer:
                 if pid in self.desc_cache:
                     desc = self.desc_cache[pid]
                 else:
-                    detail = redbox.Product().getDetail(pid)
+                    detail = redbox.Product().getDetail(pid, -1)
                     desc = detail.get('desc', "")
                     self.desc_cache[pid] = desc
 

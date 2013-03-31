@@ -60,7 +60,7 @@ class RSSServer:
             return response.encode('utf-8')
 
     # constructor
-    def __init__ (self, config=SETTINGS_FILE):
+    def __init__ (self, config=SETTINGS_FILE, debug=False):
 
         # get settings
         self.read_config(config)
@@ -68,13 +68,18 @@ class RSSServer:
         # setup logger
         try:
             if self.log:
-                logging.basicConfig(filename=self.log, level=logging.INFO,
+                level = { True: logging.DEBUG, False: logging.INFO }
+                logging.basicConfig(filename=self.log, level=level[debug],
                     format="%(asctime)s  %(levelname)s: %(message)s")
             else:
-                logging.basicConfig(level=logging.ERROR,
+                level = { True: logging.DEBUG, False: logging.ERROR }
+                logging.basicConfig(level=level[debug],
                     format="%(levelname)s: %(message)s")
         except IOError:
             raise SettingsError("Failed to create log '%s'" % self.log)
+
+        # set redbox api debug
+        redbox.set_debug(debug)
 
         # new redbox account
         self.account = redbox.Account()
@@ -270,6 +275,9 @@ if __name__ == '__main__':
     parser.add_option("-c", "--config",
         dest="config", default=SETTINGS_FILE, metavar="FILE",
         help="server configuration file (default=%s)" % SETTINGS_FILE)
+    parser.add_option("-d", "--debug",
+        dest="debug", default=False, action='store_true',
+        help="set logging level to debug")
     (options, args) = parser.parse_args()
 
     # catch interrupt signal
@@ -278,7 +286,8 @@ if __name__ == '__main__':
     try:
 
         # start redbox rss server
-        server = RSSServer(options.config)
+        server = RSSServer(
+            config=options.config, debug=options.debug)
         server.start()
 
     # catch settings file errors

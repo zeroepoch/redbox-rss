@@ -49,6 +49,7 @@ import re
 import urllib
 import urllib2
 import cookielib
+import logging
 
 try:
     import json
@@ -58,6 +59,12 @@ except ImportError:
 # redbox urls
 REDBOX_API_URL = "https://www.redbox.com/api"
 REDBOX_API_KEY_URL = "http://www.redbox.com/register"
+
+# enable/disable library debug
+_redbox_debug = False
+def set_debug (val):
+    global _redbox_debug
+    _redbox_debug = val
 
 # api key extraction errors
 class APIKeyError (Exception):
@@ -101,6 +108,10 @@ class RedboxAPI:
     # get dynamic api key
     def _get_api_key (self):
 
+        # log api key request
+        if _redbox_debug:
+            logging.debug("API KEY " + REDBOX_API_KEY_URL)
+
         # fetch login page
         try:
             response = self.url_opener.open(REDBOX_API_KEY_URL)
@@ -133,6 +144,10 @@ class RedboxAPI:
         request.add_header("__K", api_key)
         if method == RedboxAPI.Method.POST:
             request.add_data(json.dumps(data))
+
+        # log api request
+        if _redbox_debug:
+            logging.debug("API " + request_url)
 
         # fetch api data
         try:
@@ -232,7 +247,5 @@ class Account (RedboxAPI):
             return None
 
         return result.get('Data')
-
-    # TODO: implement additional API calls
 
 # vim: ai et ts=4 sts=4 sw=4

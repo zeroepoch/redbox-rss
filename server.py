@@ -4,6 +4,7 @@ import sys
 import string
 import logging
 import signal
+import optparse
 import ConfigParser
 
 # twisted server
@@ -59,10 +60,10 @@ class RSSServer:
             return str(response)
 
     # constructor
-    def __init__ (self):
+    def __init__ (self, config=SETTINGS_FILE):
 
         # get settings
-        self.read_config()
+        self.read_config(config)
 
         # setup logger
         try:
@@ -78,18 +79,18 @@ class RSSServer:
         # new redbox account
         self.account = redbox.Account()
 
-    # parse settings files
-    def read_config (self):
+    # parse settings file
+    def read_config (self, path):
 
         # create config parser
         config = ConfigParser.RawConfigParser()
 
         # load config file
         try:
-            config.readfp(open(SETTINGS_FILE, 'r'))
+            config.readfp(open(path, 'r'))
         except:
             raise SettingsError(
-                "Failed to load settings file '%s'" % SETTINGS_FILE)
+                "Failed to load settings file '%s'" % path)
 
         # get username
         try:
@@ -159,6 +160,9 @@ class RSSServer:
             rentals = self.account.getRentalHistory()
             if not rentals:
 
+                # first attempt failed
+                logging.info("Attempting rental history retrieval again")
+
                 # login to redbox
                 if not self.account.login(self.username, self.password):
                     logging.error("Failed to login to redbox")
@@ -191,7 +195,7 @@ class RSSServer:
         <rss version="2.0">
           <channel>
             <title>Redbox Rental History</title>
-            <description>Recent rentals from redbox kioks</description>
+            <description>Recent rentals from redbox kiosks</description>
             <link>https://www.redbox.com/account/RentalHistory</link>
             <ttl>60</ttl>
         """.lstrip()
@@ -239,13 +243,20 @@ def sigint_handler (signum, frame):
 # entry point
 if __name__ == '__main__':
 
+    # parse command line
+    parser = optparse.OptionParser()
+    parser.add_option("-c", "--config",
+        dest="config", default=SETTINGS_FILE, metavar="FILE",
+        help="server configuration file (default=%s)" % SETTINGS_FILE)
+    (options, args) = parser.parse_args()
+
     # catch interrupt signal
     signal.signal(signal.SIGINT, sigint_handler)
 
     try:
 
         # start redbox rss server
-        server = RSSServer()
+        server = RSSServer(options.config)
         server.start()
 
     # catch settings file errors

@@ -28,14 +28,14 @@
 
 #
 # Redbox requires two key pieces of information in order to login to their
-# website. The first piece is an API key and the second piece is an user
-# identification cookie.
+# website or use their API. The first piece is an API key and the second piece
+# is an user identification cookie (probably a server session cookie).
 #
 # The API key changes over time (probably because it's public) but it's given
-# with each page request. If a page is requested before each API call then the
+# with each page request. If a page is requested before the API call then the
 # key will always be valid. Once logged in some requests don't actually require
-# the API key due to an authentication cookie. Just to be safe the API key is
-# extracted each time similar to how it would be in real life when the user is
+# the API key due to the identification cookie. Just to be safe the API key is
+# provided each time similar to how it would be in real life where the user is
 # navigating pages. Once the API key is extracted it gets passed to the server
 # by setting the '__K' HTTP header while constructing the page request.
 #
@@ -45,9 +45,9 @@
 # Since the cookie jar is persistent across all page requests this is trivial
 # to manage.
 #
-# API requests are given in JSON format. API responses are returned in JSON
-# format. The structure of a API request is unique to the API being called. The
-# basic structure of an API response looks like:
+# API requests are given in JSON or urlencode format. API responses are
+# returned in JSON format. The structure of an API request is unique to the API
+# being called. The basic structure of an API response looks like:
 #
 # d: {
 #   data: {
@@ -62,10 +62,6 @@
 #
 # For additional information about the structure of each API call see:
 #   docs/rb.global.js
-#
-# The length of time that an authenticated session will remain valid may be
-# related to the expiration date on a cookie name '.Redbox'. This has not yet
-# been verified.
 #
 
 import sys

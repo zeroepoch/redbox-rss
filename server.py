@@ -60,10 +60,16 @@ class RSSServer:
             return response.encode('utf-8')
 
     # constructor
-    def __init__ (self, config=SETTINGS_FILE, debug=False):
+    def __init__ (self, config=SETTINGS_FILE, log=None, debug=False):
 
         # get settings
         self.read_config(config)
+
+        # override log path
+        if log == "-":
+            self.log = None
+        elif log:
+            self.log = log
 
         # setup logger
         try:
@@ -292,6 +298,9 @@ if __name__ == '__main__':
     parser.add_option("-d", "--debug",
         dest="debug", default=False, action='store_true',
         help="set logging level to debug")
+    parser.add_option("-l", "--log",
+        dest="log", default=None, metavar="FILE",
+        help="override log set in configuration file")
     (options, args) = parser.parse_args()
 
     # catch interrupt signal
@@ -301,7 +310,7 @@ if __name__ == '__main__':
 
         # start redbox rss server
         server = RSSServer(
-            config=options.config, debug=options.debug)
+            config=options.config, log=options.log, debug=options.debug)
         server.start()
 
     # catch settings file errors

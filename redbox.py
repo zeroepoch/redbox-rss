@@ -46,6 +46,7 @@
 
 import sys
 import re
+import urllib
 import urllib2
 import cookielib
 
@@ -76,22 +77,29 @@ class HTTPError (Exception):
 class JSONError (Exception):
     pass
 
-# Redbox Account Class (rb.api.account)
-class Account:
+# Redbox Base Class (rb.api)
+class RedboxAPI:
+
+    # regex for locating api key
+    re_api_key = re.compile(r"\brb\.api\.key\s*=\s*'([^']+)'\s*;")
+
+    # global cookie jar
+    cookie_jar = cookielib.CookieJar()
+
+    # page request methods
+    class Method:
+        GET  = 1
+        POST = 2
 
     # constructor
     def __init__ (self):
 
         # create url opener
-        self.cookie_jar = cookielib.CookieJar()
         self.url_opener = urllib2.build_opener(
             urllib2.HTTPCookieProcessor(self.cookie_jar))
 
     # get dynamic api key
     def _get_api_key (self):
-
-        # regex for locating api key
-        re_api_key = re.compile(r"\brb\.api\.key\s*=\s*'([^']+)'\s*;")
 
         # fetch login page
         try:
@@ -101,7 +109,7 @@ class Account:
 
         # find redbox api key
         html = response.read()
-        mat_api_key = re_api_key.search(html)
+        mat_api_key = self.re_api_key.search(html)
         if mat_api_key:
             api_key = mat_api_key.group(1).strip()
         else:
@@ -110,15 +118,21 @@ class Account:
         return api_key
 
     # perform ajax operation
-    def _ajax (self, url, data):
+    def _ajax (self, method, url, data):
 
         # get redbox api key
         api_key = self._get_api_key()
 
+        # format request url
+        request_url = REDBOX_API_URL + url
+        if method == RedboxAPI.Method.GET:
+            request_url += "?" + urllib.urlencode(data)
+
         # build api request
-        request = urllib2.Request(REDBOX_API_URL + url)
+        request = urllib2.Request(request_url)
         request.add_header("__K", api_key)
-        request.add_data(json.dumps(data))
+        if method == RedboxAPI.Method.POST:
+            request.add_data(json.dumps(data))
 
         # fetch api data
         try:
@@ -145,6 +159,9 @@ class Account:
 
         return d.get('data')
 
+# Redbox Account Class (rb.api.account)
+class Account (RedboxAPI):
+
     # login to the redbox website
     def login (self, username, password):
 
@@ -156,7 +173,8 @@ class Account:
         }
 
         # perform api call
-        result = self._ajax("/Account/Login", data)
+        result = self._ajax(
+            RedboxAPI.Method.POST, "/Account/Login", data)
         if not result:
             return False
 
@@ -175,7 +193,7 @@ class Account:
         }
 
         # perform api call
-        self._ajax("/Account/Logout", data)
+        self._ajax(RedboxAPI.Method.POST, "/Account/Logout", data)
 
     # get the last <count> rentals
     def getRentalHistory (self, count=10):
@@ -189,7 +207,8 @@ class Account:
         }
 
         # perform api call
-        result = self._ajax("/Account/GetRentalHistory", data)
+        result = self._ajax(
+            RedboxAPI.Method.POST, "/Account/GetRentalHistory", data)
         if not result:
             return None
 

@@ -52,7 +52,7 @@ SETTINGS_FILE = "redbox.ini"
 FAVICON_URL = "http://www.redbox.com/content/images/favicon.ico"
 
 # titles refresh interval
-TITLES_TIMEOUT = 3600  # 1 hr
+TITLES_TIMEOUT = 21600  # 6 hr
 
 # settings parser errors
 class SettingsError (Exception):
@@ -268,7 +268,7 @@ class RSSServer:
             Format: ${type}
           </description>
           <link>http://www.redbox.com/movies/${seo}</link>
-          <guid>${ID}</guid>
+          <guid>${inv}</guid>
         </item>
         """.lstrip())
 

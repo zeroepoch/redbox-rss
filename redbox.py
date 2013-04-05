@@ -83,7 +83,7 @@ REDBOX_API_URL = "https://www.redbox.com/api"
 REDBOX_API_KEY_URL = "http://www.redbox.com/register"
 
 # api key refresh interval
-API_KEY_TIMEOUT = 60  # 1 min
+API_KEY_TIMEOUT = 600  # 10 min
 
 # enable/disable library debug
 _redbox_debug = False

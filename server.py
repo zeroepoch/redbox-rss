@@ -268,7 +268,7 @@ class RSSServer:
             Format: ${type}
           </description>
           <link>http://www.redbox.com/movies/${seo}</link>
-          <guid>${inv}</guid>
+          <guid>${inv}-${PID}</guid>
         </item>
         """.lstrip())
 

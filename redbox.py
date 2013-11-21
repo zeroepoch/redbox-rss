@@ -81,7 +81,7 @@ except ImportError:
 
 # redbox urls
 REDBOX_API_URL = "https://www.redbox.com/api"
-REDBOX_API_KEY_URL = "http://www.redbox.com/register"
+REDBOX_API_KEY_URL = "http://www.redbox.com"
 
 # api key refresh interval
 API_KEY_TIMEOUT = 600  # 10 min
@@ -151,7 +151,7 @@ class RedboxAPI:
         if _redbox_debug:
             logging.debug("API KEY " + REDBOX_API_KEY_URL)
 
-        # fetch login page
+        # fetch home page
         try:
             response = self.url_opener.open(REDBOX_API_KEY_URL)
         except urllib2.HTTPError, err:

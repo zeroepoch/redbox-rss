@@ -240,7 +240,8 @@ class Product (RedboxAPI):
         try:
             result_js = response.read()
             start = result_js.find("[")
-            result_json = json.loads(result_js[start:])
+            end = result_js.rfind("]") + 1  # inclusive
+            result_json = json.loads(result_js[start:end])
         except ValueError:
             raise JSONError("Titles javascript page was unrecognizable")
 

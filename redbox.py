@@ -135,6 +135,7 @@ class RedboxAPI:
         # create url opener
         self.url_opener = urllib2.build_opener(
             urllib2.HTTPCookieProcessor(self.cookie_jar))
+        self.url_opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 
     # get dynamic api key
     def _get_api_key (self):

@@ -212,7 +212,7 @@ class RSSServer:
         try:
 
             # get recent rentals (attempt 1)
-            rentals = self.account.getRentalHistory()
+            rentals = self.account.getRentalHistory(20)
             if not rentals:
 
                 # first attempt failed
@@ -224,7 +224,7 @@ class RSSServer:
                     return None
 
                 # get recent rentals (attempt 2)
-                rentals = self.account.getRentalHistory()
+                rentals = self.account.getRentalHistory(20)
                 if not rentals:
                     logging.error("Unable to retrieve rental history")
                     return None

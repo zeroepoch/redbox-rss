@@ -34,6 +34,7 @@ import logging
 import signal
 import optparse
 import ConfigParser
+import cgi
 
 from datetime import datetime, timedelta
 
@@ -269,7 +270,7 @@ class RSSServer:
             Format: ${type}
           </description>
           <link>http://www.redbox.com/movies/${seo}</link>
-          <guid>${inv}-${PID}</guid>
+          <guid isPermaLink="false">${inv}-${PID}</guid>
         </item>
         """.lstrip())
 
@@ -302,7 +303,7 @@ class RSSServer:
                     desc = self.desc_cache[pid]
                 else:
                     detail = redbox.Product().getDetail(pid, -1)
-                    desc = detail.get('desc', "")
+                    desc = cgi.escape(detail.get('desc', ""))
                     self.desc_cache[pid] = desc
 
                 # get url short name
@@ -311,6 +312,11 @@ class RSSServer:
                     seo = title.get('SEO', pid)
                 else:
                     seo = pid
+
+                # escape html chars
+                for k, v in movie.iteritems():
+                    if isinstance(v, basestring):
+                        movie[k] = cgi.escape(v)
 
                 # fill tmpl with movie data
                 body += tmpl.substitute(movie, desc=desc, seo=seo)

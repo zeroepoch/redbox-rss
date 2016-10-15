@@ -2,7 +2,7 @@
 #
 # Redbox RSS Server
 #
-# Copyright (c) 2013, Eric Work
+# Copyright (c) 2013-2016, Eric Work
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -214,7 +214,7 @@ class RSSServer:
 
             # get recent rentals (attempt 1)
             rentals = self.account.getRentalHistory(20)
-            if not rentals:
+            if not isinstance(rentals, list):
 
                 # first attempt failed
                 logging.info("Attempting rental history retrieval again")
@@ -226,7 +226,7 @@ class RSSServer:
 
                 # get recent rentals (attempt 2)
                 rentals = self.account.getRentalHistory(20)
-                if not rentals:
+                if not isinstance(rentals, list):
                     logging.error("Unable to retrieve rental history")
                     return None
 
@@ -242,7 +242,7 @@ class RSSServer:
 
         # get rental history
         rentals = self.get_rentals()
-        if not rentals:
+        if rentals is None:
             return u""
 
         # formats rss header

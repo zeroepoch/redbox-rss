@@ -1,7 +1,7 @@
 #
 # Redbox API Library
 #
-# Copyright (c) 2013, Eric Work
+# Copyright (c) 2013-2016, Eric Work
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -321,8 +321,7 @@ class Account (RedboxAPI):
         data = {
             'page': 1,
             'pageSize': count,
-            'id': None,
-            'direction': -1
+            'direction': 0
         }
 
         # perform api call

@@ -324,10 +324,10 @@ class RSSServer:
         # catch malformed data errors
         except KeyError, err:
             logging.error("Movie is missing %s key" % err)
-            return ""
+            return u""
         except Exception, err:
             logging.error(err)
-            return ""
+            return u""
 
         return (head + body + tail)
 

@@ -213,7 +213,7 @@ class RedboxAPI:
         # check if request successful
         if not d.get('success'):
             msg = d.get('msg', "Unknown, API message missing")
-            sys.stderr.write("ERROR: %s\n" % msg)
+            logging.error("API " + msg)
             return None
 
         return d.get('data')

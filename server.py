@@ -84,6 +84,9 @@ class RSSServer:
             # redirect favicon.ico to redbox
             if request.uri == "/favicon.ico":
                 return twisted.web.util.redirectTo(FAVICON_URL, request)
+            elif request.uri != "/":
+                request.setResponseCode(404)
+                return ""
 
             # set return type as xml
             request.setHeader("Content-Type", "application/xml")
